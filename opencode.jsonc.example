@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "loyverse": {
+      "type": "local",
+      "command": ["node", "/ruta/absoluta/a/mcploy/dist/index.js"],
+      "environment": {
+        "LOYVERSE_ACCESS_TOKEN": "tu-token"
+      }
+    }
+  }
+}

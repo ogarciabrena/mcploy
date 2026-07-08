@@ -78,7 +78,8 @@ claude mcp add loyverse -e LOYVERSE_ACCESS_TOKEN=tu-token -- node /ruta/absoluta
 
 ### opencode
 
-En `opencode.jsonc` (raíz del proyecto o config de usuario):
+Copia `opencode.jsonc.example` a `opencode.jsonc` (raíz del proyecto o config de
+usuario) y pon tu token — también está en `.gitignore`:
 
 ```jsonc
 {
@@ -94,6 +95,13 @@ En `opencode.jsonc` (raíz del proyecto o config de usuario):
   }
 }
 ```
+
+Verifica la conexión con `opencode mcp list` (debe salir `✓ loyverse connected`) y
+pregunta algo con `opencode run "lista las tiendas de loyverse"`. Probado en vivo con
+`google/gemini-2.5-flash` — funciona igual que con Claude, sin cambiar nada del
+servidor. Un detalle: opencode antepone el nombre del servidor al de la tool, así que
+`loyverse_list_store` aparece como `loyverse_loyverse_list_store` en sus logs — no es un
+bug, es solo cómo opencode namespacea las tools de cada MCP server.
 
 ### Otros clientes (Gemini CLI, etc.)
 
