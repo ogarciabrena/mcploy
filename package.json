@@ -2,6 +2,11 @@
   "name": "mcploy",
   "version": "0.1.0",
   "description": "MCP server exposing the Loyverse POS API",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ogarciabrena/mcploy"
+  },
   "type": "module",
   "bin": {
     "mcploy": "./dist/index.js"
