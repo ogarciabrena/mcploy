@@ -1,0 +1,25 @@
+{
+  "name": "mcploy",
+  "version": "0.1.0",
+  "description": "MCP server exposing the Loyverse POS API",
+  "type": "module",
+  "bin": {
+    "mcploy": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3"
+  }
+}
