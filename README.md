@@ -1,20 +1,21 @@
 # mcploy
 
-An [MCP](https://modelcontextprotocol.io) server that exposes the [Loyverse](https://loyverse.com)
-POS API (`https://api.loyverse.com/v1.0`) as tools for AI assistants — read and manage
-stores, items, inventory, customers, receipts, cash shifts, and more, straight from a
-chat with Claude, Gemini CLI, or any other MCP-compatible client.
+Un servidor [MCP](https://modelcontextprotocol.io) que expone la API de
+[Loyverse](https://loyverse.com) (`https://api.loyverse.com/v1.0`) como herramientas para
+asistentes de IA — consulta y administra tiendas, productos, inventario, clientes,
+recibos, cortes de caja y más, directo desde un chat con Claude, Gemini CLI, o cualquier
+otro cliente compatible con MCP.
 
-It's a thin, generic wrapper: one small registry of Loyverse resources drives
-auto-generated `list`/`get`/`create`/`update`/`delete` tools, instead of hand-written
-code per endpoint. See [Design](#design) for why.
+Es un wrapper delgado y genérico: un pequeño registro de recursos de Loyverse genera
+automáticamente las herramientas `list`/`get`/`create`/`update`/`delete`, en vez de
+código escrito a mano por endpoint. Ver [Diseño](#diseño) para el porqué.
 
-## Requirements
+## Requisitos
 
 - Node.js 18+
-- A Loyverse account and a Personal Access Token
+- Una cuenta de Loyverse y un token de acceso personal
 
-## Install
+## Instalación
 
 ```bash
 git clone https://github.com/ogarciabrena/mcploy.git
@@ -23,59 +24,60 @@ npm install
 npm run build
 ```
 
-## Get a Loyverse access token
+## Obtener un token de acceso de Loyverse
 
-In the Loyverse Back Office: **Settings > Access Tokens** > create a token. Loyverse
-calls it a "ficha de acceso" in Spanish.
+En el Back Office de Loyverse: **Configuración > Fichas de Acceso** ("Access Tokens" en
+inglés) > crear una ficha.
 
-## Configure
+## Configuración
 
-Copy `.env.example` to `.env` and fill in your token, or export it directly:
+Copia `.env.example` a `.env` y pon tu token, o expórtalo directamente:
 
 ```bash
 cp .env.example .env
-# edit .env and set LOYVERSE_ACCESS_TOKEN
+# edita .env y define LOYVERSE_ACCESS_TOKEN
 ```
 
-`.env` is git-ignored — your token never gets committed.
+`.env` está en `.gitignore` — tu token nunca se sube al repo.
 
-## Use it
+## Cómo usarlo
 
 ### Claude Code
 
 ```bash
-claude mcp add loyverse -e LOYVERSE_ACCESS_TOKEN=your-token -- node /absolute/path/to/mcploy/dist/index.js
+claude mcp add loyverse -e LOYVERSE_ACCESS_TOKEN=tu-token -- node /ruta/absoluta/a/mcploy/dist/index.js
 ```
 
-### Claude Desktop / any JSON-config MCP client
+### Claude Desktop / cualquier cliente MCP con config JSON
 
 ```json
 {
   "mcpServers": {
     "loyverse": {
       "command": "node",
-      "args": ["/absolute/path/to/mcploy/dist/index.js"],
+      "args": ["/ruta/absoluta/a/mcploy/dist/index.js"],
       "env": {
-        "LOYVERSE_ACCESS_TOKEN": "your-token"
+        "LOYVERSE_ACCESS_TOKEN": "tu-token"
       }
     }
   }
 }
 ```
 
-### Other clients (Gemini CLI, etc.)
+### Otros clientes (Gemini CLI, etc.)
 
-The server just speaks standard MCP over stdio — it has no Claude- or Anthropic-specific
-code anywhere. Any MCP-compatible client can spawn `node dist/index.js` with
-`LOYVERSE_ACCESS_TOKEN` set and use it the same way.
+El servidor solo habla el protocolo MCP estándar por stdio — no tiene código específico
+de Claude ni de Anthropic en ningún lado. Cualquier cliente compatible con MCP puede
+ejecutar `node dist/index.js` con `LOYVERSE_ACCESS_TOKEN` definido y usarlo igual.
 
-## Tools
+## Herramientas
 
-For each resource, the tools that exist are exactly the ops it supports:
+Para cada recurso, las herramientas que existen son exactamente las operaciones que
+soporta:
 
-| Resource | list | get | create | update | delete |
+| Recurso | list | get | create | update | delete |
 |---|---|---|---|---|---|
-| `merchant` | | ✓ (singleton) | | | |
+| `merchant` | | ✓ (único) | | | |
 | `stores` | ✓ | ✓ | | | |
 | `categories` | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `items` | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -86,62 +88,65 @@ For each resource, the tools that exist are exactly the ops it supports:
 | `employees` | ✓ | ✓ | | | |
 | `pos_devices` | ✓ | ✓ | | | |
 | `suppliers` | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `inventory` | ✓ | | | ✓ (stock levels) | |
+| `inventory` | ✓ | | | ✓ (niveles de stock) | |
 | `shifts` | ✓ | ✓ | | | |
 | `receipts` | ✓ | ✓ | ✓ | | |
 | `payment_types` | ✓ | ✓ | | | |
 | `webhooks` | ✓ | | ✓ | | ✓ |
 
-Tool naming: `loyverse_<op>_<resource singular>`, e.g. `loyverse_list_item`,
-`loyverse_get_store`, `loyverse_create_customer`, `loyverse_update_category`,
-`loyverse_delete_discount`.
+Nombres de las tools: `loyverse_<operación>_<recurso en singular>`, por ejemplo
+`loyverse_list_item`, `loyverse_get_store`, `loyverse_create_customer`,
+`loyverse_update_category`, `loyverse_delete_discount`.
 
-- **List tools** take `query` (extra filters, passed through as-is), `limit`, `cursor`,
-  and `fetch_all` (auto-follows pagination, capped at 20 pages).
-- **Get/update/delete tools** take `id`.
-- **Create/update tools** take `body`, a free-form JSON object of the resource's fields.
-  Update is *not* a partial patch — Loyverse expects the full object (see
-  [Design](#design)).
+- **Tools de `list`** reciben `query` (filtros extra, se mandan tal cual), `limit`,
+  `cursor`, y `fetch_all` (sigue la paginación automáticamente, con tope de 20 páginas).
+- **Tools de `get`/`update`/`delete`** reciben `id`.
+- **Tools de `create`/`update`** reciben `body`, un objeto JSON libre con los campos del
+  recurso. Update **no** es un parche parcial — Loyverse espera el objeto completo (ver
+  [Diseño](#diseño)).
 
-## Design
+## Diseño
 
-The official docs (developer.loyverse.com/docs) are a JS single-page app that isn't
-scrapeable in the usual way, so instead of hand-typing a Zod schema per field per
-resource (and risking hallucinated field names baked into rigid code), the server takes
-a different approach:
+La documentación oficial (developer.loyverse.com/docs) es una aplicación JS de una sola
+página que no se puede scrapear de la forma usual, así que en vez de escribir a mano un
+schema Zod por cada campo de cada recurso (arriesgándome a inventar nombres de campo que
+queden fijos en el código), el servidor toma otro enfoque:
 
-- `src/resources.ts` is a small registry: resource name, API path, and which operations
-  it supports.
-- `src/tools.ts` generates the MCP tools from that registry — one function per op, used
-  for every resource.
-- `body`/`query` fields are passed straight through to the Loyverse API as JSON. If a
-  field is wrong, Loyverse's own error message comes back verbatim, so the caller (human
-  or LLM) can self-correct instead of hitting a wall of silently-wrong hardcoded schema.
+- `src/resources.ts` es un registro pequeño: nombre del recurso, path de la API, y qué
+  operaciones soporta.
+- `src/tools.ts` genera las tools de MCP a partir de ese registro — una función por
+  operación, reutilizada para todos los recursos.
+- Los campos de `body`/`query` se mandan tal cual a la API de Loyverse como JSON. Si un
+  campo está mal, el propio mensaje de error de Loyverse regresa textual, así quien
+  llama (humano o LLM) se puede autocorregir en vez de chocar con un schema fijo que
+  está mal silenciosamente.
 
-Every `list` endpoint in the registry has been verified live against a real Loyverse
-account. Two guessed paths turned out wrong during that process and were fixed:
-`points_of_sale` doesn't exist (the real endpoint is `pos_devices`), and
-`customer_groups` isn't a real resource in the public API at all (removed after trying
-several path variants, all 404). `shifts` isn't mentioned in the official docs but is a
-real, working endpoint. `create`/`update`/`delete` are less exhaustively tested — if one
-misbehaves, please open an issue or a PR against `src/resources.ts`.
+Todos los endpoints de `list` del registro fueron verificados en vivo contra una cuenta
+real de Loyverse. Dos rutas que supuse resultaron mal y se corrigieron en el proceso:
+`points_of_sale` no existe (el endpoint real es `pos_devices`), y `customer_groups` no
+es un recurso real de la API pública (se probaron varias variantes de path, todas 404,
+se eliminó). `shifts` no aparece en la documentación oficial pero es un endpoint real que
+funciona. Las operaciones `create`/`update`/`delete` están menos probadas — si alguna
+falla, abre un issue o un PR contra `src/resources.ts`.
 
-## Known limitations
+## Limitaciones conocidas
 
-- `receipts` only supports list/get/create — Loyverse's API doesn't allow updating or
-  deleting receipts.
-- Update endpoints use `POST` to the collection path with `id` in the body (that's how
-  Loyverse does it), and expect the full resource object, not a partial diff.
-- `loyverse_delete_*` tools are destructive and irreversible — Loyverse has no undo.
-- Pagination is cursor-based; `fetch_all` is capped at 20 pages as a safety net against
-  runaway loops.
+- `receipts` solo soporta list/get/create — la API de Loyverse no permite actualizar ni
+  borrar recibos.
+- Los endpoints de update usan `POST` al path de la colección con el `id` dentro del
+  body (así lo maneja Loyverse), y esperan el objeto completo, no solo el campo que
+  cambia.
+- Las tools `loyverse_delete_*` son destructivas e irreversibles — Loyverse no tiene
+  deshacer.
+- La paginación es por cursor; `fetch_all` tiene un tope de 20 páginas como salvaguarda
+  contra loops descontrolados.
 
-## Contributing
+## Contribuir
 
-Found a resource with a wrong path, a field Loyverse rejects, or a missing endpoint?
-`src/resources.ts` is the single source of truth — add or fix an entry there and the
-tools regenerate themselves. PRs and issues welcome.
+¿Encontraste un recurso con un path incorrecto, un campo que Loyverse rechaza, o un
+endpoint que falta? `src/resources.ts` es la única fuente de verdad — agrega o corrige
+una entrada ahí y las tools se regeneran solas. PRs e issues son bienvenidos.
 
-## License
+## Licencia
 
 [MIT](LICENSE)
