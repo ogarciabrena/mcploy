@@ -40,6 +40,18 @@ cp .env.example .env
 
 `.env` está en `.gitignore` — tu token nunca se sube al repo.
 
+## Verificar que funciona
+
+Sin conectar ningún cliente todavía, puedes confirmar que el servidor arranca y expone
+las tools correctamente con el [MCP Inspector](https://github.com/modelcontextprotocol/inspector):
+
+```bash
+LOYVERSE_ACCESS_TOKEN=tu-token npx @modelcontextprotocol/inspector node dist/index.js
+```
+
+Esto abre una UI donde puedes ver la lista completa de tools y probarlas manualmente
+(por ejemplo `loyverse_list_store`, que es de solo lectura y segura para probar primero).
+
 ## Cómo usarlo
 
 ### Claude Code
@@ -57,6 +69,25 @@ claude mcp add loyverse -e LOYVERSE_ACCESS_TOKEN=tu-token -- node /ruta/absoluta
       "command": "node",
       "args": ["/ruta/absoluta/a/mcploy/dist/index.js"],
       "env": {
+        "LOYVERSE_ACCESS_TOKEN": "tu-token"
+      }
+    }
+  }
+}
+```
+
+### opencode
+
+En `opencode.jsonc` (raíz del proyecto o config de usuario):
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "loyverse": {
+      "type": "local",
+      "command": ["node", "/ruta/absoluta/a/mcploy/dist/index.js"],
+      "environment": {
         "LOYVERSE_ACCESS_TOKEN": "tu-token"
       }
     }
@@ -104,6 +135,16 @@ Nombres de las tools: `loyverse_<operación>_<recurso en singular>`, por ejemplo
 - **Tools de `create`/`update`** reciben `body`, un objeto JSON libre con los campos del
   recurso. Update **no** es un parche parcial — Loyverse espera el objeto completo (ver
   [Diseño](#diseño)).
+
+## Estructura del proyecto
+
+```
+src/
+  index.ts       # arranca el servidor MCP (transporte stdio) y registra las tools
+  client.ts       # cliente HTTP: auth Bearer, paginación por cursor, reintentos en 429
+  resources.ts     # registro de recursos de Loyverse (fuente única de verdad)
+  tools.ts         # genera las tools MCP a partir de resources.ts
+```
 
 ## Diseño
 
